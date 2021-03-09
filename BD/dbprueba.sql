@@ -28,6 +28,23 @@ CREATE TABLE `products` (
   `bar_code` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+
+CREATE TABLE users (
+    id int IDENTITY, 
+    name VARCHAR(150) NOT NULL,
+    lastname VARCHAR(150) NOT NULL,
+    motherlastname VARCHAR(150) NOT NULL,
+    cellphone VARCHAR(10) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    street VARCHAR(100) NOT NULL,
+    house_number VARCHAR(10) NOT NULL,
+    residential VARCHAR(50) NOT NULL,
+    city VARCHAR(70) NOT NULL,
+    postal_code VARCHAR(5) NOT NULL,
+
+);
+
 --
 -- Dumping data for table `products`
 --
