@@ -10,14 +10,16 @@ namespace POC_CRUDFamily.App
     public  class CRUD
     {
         //atttribs
+        //el nombre de la tabla a IMPACTAR
         public string Table { get; set; }
         public List<DataCollection> fieldList = new List<DataCollection>();
         public static string ERROR;
+        
 
         //construct dfault
-        public CRUD()
-        {
-        }
+        //public CRUD()
+        //{
+        //}
         //constructor sobrecargado que acepta la TABLA
         public CRUD(string table)
         {
@@ -43,7 +45,7 @@ namespace POC_CRUDFamily.App
                 //establecemos el command
                 SqlCommand com = new SqlCommand();
                 //ponemos el texto del query
-                com.CommandText = " INSERT INTO products (";
+                com.CommandText = $" INSERT INTO {this.Table} (";
                 //generar un string con tgodos los campos separados por ','
                 foreach (DataCollection dato in data)
                     com.CommandText += dato.Name + ",";
@@ -118,7 +120,7 @@ namespace POC_CRUDFamily.App
                 MySqlCommand com = new MySqlCommand();
                 //ponemos el texto del query
                 //com.Com⁄mandText = $"INSERT INTO products (name, description, price, bar_code) VALUES ('{data[0].Value}','{data[1].Value}', {data[2].Value}, '{data[3].Value}');";
-                com.CommandText = $"INSERT INTO products (";
+                com.CommandText = $"INSERT INTO {this.Table} (";
                 foreach (DataCollection dato in data)
                 {
                     com.CommandText += dato.Name + ",";
@@ -178,7 +180,7 @@ namespace POC_CRUDFamily.App
                 con.Open();
                 //generar command con el QUERY - update
                 //com.CommandText = "UPDATE products SET c1 = v1, c2=v2... cn=vn, WHERE id=1"                //
-                com.CommandText = "UPDATE products SET ";
+                com.CommandText = $"UPDATE {this.Table} SET ";
                 foreach (DataCollection dato in data)
                 {
                     //validar si el Type necesita apostrofes
@@ -243,7 +245,7 @@ namespace POC_CRUDFamily.App
                     con.Open();
 
                 //genera el QUERY
-                com.CommandText = $"DELETE FROM products WHERE id = {id}";
+                com.CommandText = $"DELETE FROM {this.Table} WHERE id = {id}";
                 //asociar el connetion al command
                 com.Connection = con;
                 //ejecutar el query
@@ -293,7 +295,7 @@ namespace POC_CRUDFamily.App
                 //abrir conex
                 con.Open();
                 //crear el query
-                com.CommandText = "SELECT * FROM products WHERE  ";
+                com.CommandText = $"SELECT * FROM {this.Table} WHERE  ";
                 com.Connection = con;
                 //filtrado de serch collection para los criterios de busquda
                 foreach (SearchCollection criterio in search)
@@ -400,6 +402,78 @@ namespace POC_CRUDFamily.App
                     break;
 
             }
+            return res;
+        }
+
+        public List<object> index()
+        {
+            //var de resultado
+            List<object> res = new List<object>();
+            //vars de BD
+            SqlConnection con = new SqlConnection();
+            SqlCommand com = new SqlCommand();
+            try
+            {
+                //generar el connString
+                string connString = "Server=localhost;Database=dbprueba;User Id=SA;Password=SqlServer2017;";
+                //instanciar la conex
+                con.ConnectionString = connString;
+                //validar la conexion
+                if (con.State == ConnectionState.Broken)
+                {
+                    con.Close();
+                    con.Open();
+                }
+                else if (con.State == ConnectionState.Closed)
+                {
+                    con.Open();
+                }
+                //crear el query
+                string query = $"SELECT * FROM {this.Table}";
+                //poner el query dentro del command
+                com.CommandText = query;
+                //asignamos la CONEXION al command
+                com.Connection = con;
+                //execute el reader
+                SqlDataReader reader = com.ExecuteReader();
+                //procesar la lista
+                //validamos si la lista tiene ALGUN REGISTRO
+                if (reader.HasRows)
+                {
+                    //procezamos el registros
+                    while (reader.Read())
+                    {
+                        int numCampos = reader.FieldCount; //obtenemos el num de campos de los registros
+                        string[] registro = new string[numCampos];
+                        for (int i = 0; i < numCampos; i++)
+                            registro[i] = reader.GetValue(i).ToString();
+                        //agregamos el areglo lleno a la LISTA de resultados
+                        res.Add(registro);
+                    }
+                }
+                else //si no tiene registros, entonces
+                {
+                    CRUD.ERROR = $"La consulta -{query}-, no devuelve NINGÚN registro";
+                }
+            }
+            catch (SqlException sqlex)
+            {
+                CRUD.ERROR = "Error SQL al CONSULTAR TODOS LOS REGISTROS. " + sqlex.Message;
+            }
+            catch (IOException ioex)
+            {
+                CRUD.ERROR = "Error de Entrada o Salida de Datos, al CONSULTAR TODOS LOS REGISTROS. " + ioex.Message;
+            }
+            catch (Exception ex)
+            {
+                CRUD.ERROR = "Error gral al CONSULTAR TODOS LOS REGISTROS. " + ex.Message;
+            }
+            finally
+            {
+                if(con.State != ConnectionState.Closed)
+                    con.Close();
+            }
+            //retornamos el resultado
             return res;
         }
     }
